@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum RefundType {
+  POINT
+  BANK
+}
+
+model User {
+  id                Int               @id @default(autoincrement())
+  role              Role              @default(USER)
+  firstName         String  @map("first_name")
+  lastName          String  @map("last_name")
+  username          String?
+  email             String            @unique
+  phone             String?
+  password          String
+  address           String
+  refund            RefundType?
+  Order             Order[]
+  Card              Card[]
+  shippings         Shipping[]
+  products          Product[]
+}
+
+model Card {
+  id       Int   @id @default(autoincrement())
+  cardNumber String
+  expirationDate String
+  Quantity  String
+  user      User  @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+
+model Shipping {
+  id             Int     @id @default(autoincrement())
+  firstName      String  @map("first_name")
+  lastName       String  @map("last_name")
+  phone          String
+  email          String?
+  address        String
+  building       String
+  postalCode     String  @map("postal_code")
+  province       String
+  district       String
+  subDistrict    String  @map("sub_district")
+  Currentaddress   Boolean @map("is_main_adderss")
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId         Int     @map("user_id")
+}
+
+model Order {
+  id               Int                @id @default(autoincrement())
+  total_price       Int
+  status           String
+  Order_Date       String
+  user             User               @relation(fields: [userId], references: [id])
+  userId           Int                @map("user_id")
+  OrderDetail OrderDetail[]
+}
+
+model OrderDetail {
+  id         Int      @id @default(autoincrement())
+  Order   Order @relation(fields: [favoriteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  favoriteId Int      @map("favorite_id")
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId  Int      @map("product_id")
+  Quantity   String
+  Subtatal   String
+}
+
+model Category {
+  id                 Int             @id @default(autoincrement())
+  category_name      String
+  Product            Product[]
+
+  @@map("category")
+}
+
+model Product {
+  id               Int        @id @default(autoincrement())
+  product_name     String
+  description      String
+  price            Int
+  stockquantity    Int
+  cartId           Int        @map("cart_id")
+  category         Category[]
+  orderDetails     OrderDetail[]  // Define the opposite relation field here
+  user             User?      @relation(fields: [userId], references: [id])
+
+  userId           Int?       // Add this field to represent the foreign key relationship
+
+  @@map("product")
+}
+
+
+
+
